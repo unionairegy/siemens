@@ -1,221 +1,147 @@
-<!DOCTYPE html>
+from pathlib import Path
+from PIL import Image
+import base64, io, html, os, textwrap, json
+
+src_dir = Path("/mnt/data/siemens_final")
+out = Path("/mnt/data/index.html")
+
+def img_to_data_uri(path, width=1100, quality=68):
+    img = Image.open(path).convert("RGB")
+    if img.width > width:
+        h = round(img.height * width / img.width)
+        img = img.resize((width, h), Image.LANCZOS)
+    bio = io.BytesIO()
+    img.save(bio, format="WEBP", quality=quality, method=6)
+    b64 = base64.b64encode(bio.getvalue()).decode("ascii")
+    return f"data:image/webp;base64,{b64}"
+
+imgs = {
+    "cover": img_to_data_uri(src_dir/"siemens_cover.png", 1200, 70),
+    "fridge": img_to_data_uri(src_dir/"siemens_fridge.png", 900, 66),
+    "washer": img_to_data_uri(src_dir/"siemens_washer.png", 900, 66),
+    "dishwasher": img_to_data_uri(src_dir/"siemens_dishwasher.png", 900, 66),
+    "oven": img_to_data_uri(src_dir/"siemens_oven.png", 900, 66),
+}
+
+phone_display = "01025379770"
+phone_tel = "+201025379770"
+wa = "201025379770"
+
+map_src = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3305.061114634607!2d31.206731999999995!3d30.0525868!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1458413be80d13b1%3A0x1bbba3e9db7f6bff!2z2LXZitin2YbYqSDYs9mK2YXZhtiz!5e1!3m2!1sen!2seg!4v1789164561778!5m2!1sen!2seg"
+
+site = f"""<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مركز صيانة سيمنس - خدمة اصلاح الأجهزة المنزلية</title>
-    <meta name="description" content="مركز صيانة سيمنس المتخصص في إصلاح غسالات، ثلاجات، وأفران سيمنس بقطع غيار أصلية وضمان. اتصل بنا الآن: 01025379770">
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <style>
-        :root {
-            --primary-color: #002D62;
-            --secondary-color: #00A3E0;
-            --dark-color: #333;
-            --light-color: #f8f9fa;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Cairo', sans-serif;
-        }
-
-        body {
-            background-color: var(--light-color);
-            color: var(--dark-color);
-            line-height: 1.6;
-        }
-
-        header {
-            background: var(--primary-color);
-            color: white;
-            padding: 2rem 0;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        header h1 {
-            font-size: 2.2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        header p {
-            font-size: 1.1rem;
-            color: #ddd;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 1000px;
-            margin: 2rem auto;
-        }
-
-        .hero {
-            background: white;
-            padding: 3rem 2rem;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 2rem;
-        }
-
-        .hero h2 {
-            color: var(--primary-color);
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            color: #555;
-            margin-bottom: 2rem;
-        }
-
-        .btn-call {
-            display: inline-block;
-            background: #28a745;
-            color: white;
-            padding: 1rem 3rem;
-            font-size: 1.3rem;
-            font-weight: 700;
-            border-radius: 50px;
-            text-decoration: none;
-            transition: background 0.3s;
-            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
-        }
-
-        .btn-call:hover {
-            background: #218838;
-        }
-
-        .services-list {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 2rem;
-        }
-
-        .services-list h3 {
-            color: var(--primary-color);
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-
-        .services-list ul {
-            list-style: none;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px;
-            text-align: center;
-        }
-
-        .services-list li {
-            background: var(--light-color);
-            padding: 1rem;
-            border-radius: 6px;
-            font-weight: 600;
-            color: var(--dark-color);
-            border: 1px solid #e0e0e0;
-        }
-
-        .map-container {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            text-align: center;
-        }
-
-        .map-container iframe {
-            width: 100%;
-            height: 400px;
-            border: 0;
-            border-radius: 8px;
-        }
-
-        footer {
-            background: var(--dark-color);
-            color: white;
-            text-align: center;
-            padding: 1.5rem 0;
-            margin-top: 3rem;
-        }
-
-        @media (max-width: 768px) {
-            header h1 { font-size: 1.6rem; }
-            .hero h2 { font-size: 1.4rem; }
-            .btn-call { font-size: 1.1rem; padding: 0.8rem 2rem; }
-        }
-    </style>
-
-    <!-- Schema Markup SEO -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      "name": "مركز صيانة سيمنس",
-      "telephone": "+201025379770",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "القاهرة",
-        "addressCountry": "EG"
-      },
-      "openingHoursSpecification": {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": [
-          "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
-        ],
-        "opens": "00:00",
-        "closes": "23:59"
-      },
-      "priceRange": "$$"
-    }
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta name="theme-color" content="#0b2239">
+  <title>صيانة سيمنس للأجهزة المنزلية | اتصل {phone_display}</title>
+  <meta name="description" content="خدمة صيانة أجهزة سيمنس المنزلية: ثلاجات، غسالات، غسالات أطباق وأفران. فحص الأعطال وصيانة منزلية وحجز سريع على {phone_display}.">
+  <meta name="keywords" content="صيانة سيمنس, صيانة ثلاجات سيمنس, صيانة غسالات سيمنس, صيانة غسالة اطباق سيمنس, صيانة افران سيمنس, فني سيمنس">
+  <meta property="og:title" content="صيانة سيمنس للأجهزة المنزلية">
+  <meta property="og:description" content="صيانة ثلاجات وغسالات وغسالات أطباق وأفران سيمنس. اتصل الآن {phone_display}.">
+  <meta property="og:type" content="website">
+  <style>
+    :root{{
+      --navy:#0b2239;--blue:#0b5aa5;--cyan:#35a9e1;--ink:#182433;
+      --muted:#6b7280;--bg:#f5f7f9;--card:#fff;--line:#e6ebef;
+      --shadow:0 14px 36px rgba(11,34,57,.10);
+    }}
+    *{{box-sizing:border-box}}
+    html{{scroll-behavior:smooth}}
+    body{{margin:0;font-family:Tahoma,Arial,sans-serif;color:var(--ink);background:#fff;line-height:1.75}}
+    img{{max-width:100%;display:block}}
+    a{{color:inherit;text-decoration:none}}
+    .wrap{{width:min(1180px,calc(100% - 32px));margin:auto}}
+    .top{{background:var(--navy);color:#fff;font-size:14px}}
+    .top .wrap{{display:flex;gap:18px;align-items:center;justify-content:space-between;padding:9px 0}}
+    header{{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}}
+    nav{{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:72px}}
+    .brand{{font-weight:900;font-size:23px;color:var(--navy)}}
+    .brand span{{color:var(--blue)}}
+    .links{{display:flex;gap:22px;font-size:15px;font-weight:700}}
+    .call{{background:var(--blue);color:white;padding:11px 18px;border-radius:12px;font-weight:800;white-space:nowrap}}
+    .hero{{min-height:620px;display:grid;align-items:center;background:
+      linear-gradient(90deg,rgba(3,17,30,.86) 0%,rgba(3,17,30,.63) 40%,rgba(3,17,30,.15) 100%),
+      url('{imgs["cover"]}') center/cover no-repeat;color:#fff}}
+    .hero-box{{max-width:650px;padding:70px 0}}
+    .eyebrow{{display:inline-block;background:rgba(53,169,225,.18);border:1px solid rgba(255,255,255,.28);padding:7px 12px;border-radius:999px;font-weight:700}}
+    h1{{font-size:clamp(35px,5vw,62px);line-height:1.15;margin:18px 0 16px}}
+    .hero p{{font-size:20px;color:#eef7ff;max-width:620px}}
+    .actions{{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}}
+    .btn{{padding:13px 20px;border-radius:12px;font-weight:900;display:inline-flex;align-items:center;gap:8px}}
+    .btn-primary{{background:#fff;color:var(--navy)}}
+    .btn-wa{{background:#20b558;color:#fff}}
+    section{{padding:76px 0}}
+    .soft{{background:var(--bg)}}
+    .section-head{{text-align:center;max-width:760px;margin:0 auto 38px}}
+    .section-head h2{{font-size:34px;line-height:1.25;margin:0 0 10px;color:var(--navy)}}
+    .section-head p{{color:var(--muted);margin:0}}
+    .grid{{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}}
+    .card{{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)}}
+    .card img{{width:100%;aspect-ratio:4/3;object-fit:cover}}
+    .card-body{{padding:19px}}
+    .card h3{{margin:0 0 8px;font-size:21px;color:var(--navy)}}
+    .card p{{margin:0;color:var(--muted);font-size:15px}}
+    .features{{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}}
+    .feature{{border:1px solid var(--line);padding:23px;border-radius:16px;background:#fff}}
+    .feature b{{display:block;color:var(--navy);font-size:18px;margin-bottom:6px}}
+    .steps{{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;counter-reset:s}}
+    .step{{background:#fff;padding:26px;border-radius:18px;border:1px solid var(--line)}}
+    .step:before{{counter-increment:s;content:counter(s);display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:var(--blue);color:#fff;font-weight:900;margin-bottom:12px}}
+    .contact-grid{{display:grid;grid-template-columns:1fr 1.15fr;gap:26px;align-items:stretch}}
+    .contact-card{{background:var(--navy);color:#fff;border-radius:20px;padding:32px}}
+    .contact-card h2{{font-size:32px;margin-top:0}}
+    .contact-card p{{color:#d8e6f2}}
+    .phone-big{{font-size:30px;font-weight:900;direction:ltr;display:inline-block;margin:10px 0 18px}}
+    .map{{border:0;width:100%;min-height:420px;border-radius:20px;box-shadow:var(--shadow)}}
+    .note{{margin-top:18px;padding:14px 16px;border-radius:12px;background:#eef6fc;color:#31506b;font-size:13px}}
+    footer{{background:#071726;color:#d7e2ec;padding:28px 0}}
+    footer .wrap{{display:flex;justify-content:space-between;gap:20px;align-items:center}}
+    .floating{{position:fixed;left:18px;bottom:18px;z-index:30;display:flex;flex-direction:column;gap:10px}}
+    .float-btn{{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:900;box-shadow:0 10px 24px rgba(0,0,0,.22)}}
+    .f-wa{{background:#20b558}} .f-call{{background:var(--blue)}}
+    @media (max-width:900px){{
+      .links{{display:none}} .grid{{grid-template-columns:1fr 1fr}}
+      .features,.steps{{grid-template-columns:1fr}} .contact-grid{{grid-template-columns:1fr}}
+      .hero{{min-height:560px;background-position:58% center}}
+    }}
+    @media (max-width:560px){{
+      .wrap{{width:min(100% - 22px,1180px)}} .top .wrap{{font-size:12px}}
+      .brand{{font-size:19px}} .call{{padding:9px 12px}} .grid{{grid-template-columns:1fr}}
+      section{{padding:56px 0}} .hero-box{{padding:55px 0}} .hero p{{font-size:17px}}
+      footer .wrap{{flex-direction:column;text-align:center}}
+    }}
+  </style>
+  <script type="application/ld+json">
+  {{
+    "@context":"https://schema.org",
+    "@type":"ApplianceRepair",
+    "name":"صيانة سيمنس للأجهزة المنزلية",
+    "telephone":"{phone_tel}",
+    "description":"خدمة صيانة مستقلة للأجهزة المنزلية من سيمنس تشمل الثلاجات والغسالات وغسالات الأطباق والأفران.",
+    "areaServed":"القاهرة",
+    "sameAs":[]
+  }}
+  </script>
 </head>
 <body>
-
-    <header>
-        <h1>مركز صيانة سيمنس</h1>
-        <p>خدمة اصلاح وصيانة الأجهزة المنزلية بالمنزل</p>
-    </header>
-
-    <div class="container">
-        <!-- قسم الاتصال السريع -->
-        <section class="hero">
-            <h2>اتصل بنا للإصلاح الفوري</h2>
-            <p>فريق متخصص من المهندسين لإصلاح غسالات، ثلاجات، وأفران سيمنس بقطع غيار أصلية.</p>
-            <a href="tel:01025379770" class="btn-call"><i class="fa-solid fa-phone"></i> 01025379770</a>
-        </section>
-
-        <!-- الخدمات -->
-        <section class="services-list">
-            <h3>خدماتنا الرئيسية</h3>
-            <ul>
-                <li>صيانة ثلاجات سيمنس</li>
-                <li>صيانة غسالات سيمنس</li>
-                <li>صيانة أفران سيمنس</li>
-                <li>صيانة أجهزة المطبخ</li>
-            </ul>
-        </section>
-
-        <!-- الخريطة -->
-        <section class="map-container">
-            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">موقعنا على الخريطة</h3>
-            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4999.914981592175!2d31.207051101957486!3d30.05228440396239!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1458413be80d13b1%3A0x1bbba3e9db7f6bff!2z2LXZitin2YbYqSDYs9mK2YXZhtiz!5e1!3m2!1sen!2seg!4v1789165459875!5m2!1sen!2seg" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-        </section>
+  <div class="top">
+    <div class="wrap">
+      <span>خدمة صيانة الأجهزة المنزلية</span>
+      <a href="tel:{phone_tel}">اتصل الآن: <b dir="ltr">{phone_display}</b></a>
     </div>
+  </div>
 
-    <footer>
-        <p>جميع حقوق الطبع والنشر محفوظة © 2026 مركز صيانة سيمنس</p>
-    </footer>
-
-</body>
-</html>
+  <header>
+    <div class="wrap">
+      <nav>
+        <a class="brand" href="#home">صيانة <span>Siemens</span></a>
+        <div class="links">
+          <a href="#services">الأجهزة</a>
+          <a href="#why">الخدمات</a>
+          <a href="#map">الموقع</a>
+          <a href="#contact">اتصل بنا</a>
+        </div>
+        <a class="call" href="tel
